@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猜数字游戏 - 测试版</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .game-container {
+            background: white;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        h1 { color: #333; }
+        p { color: #666; line-height: 1.6; }
+        input {
+            padding: 12px 20px;
+            font-size: 18px;
+            width: 80px;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 15px;
+        }
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover { background-color: #45a049; }
+        #message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            min-height: 24px;
+        }
+        .hint { color: #2196F3; }
+        .success { color: #4CAF50; }
+        .error { color: #ff4444; }
+        .remaining { color: #FF9800; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎮 猜数字游戏</h1>
+        <p>我已经想好了一个 <strong>1 到 100</strong> 之间的随机数字。</p>
+        <p>你有 <strong class="remaining" id="attempts">10</strong> 次机会猜对它！</p>
+
+        <div>
+            <input type="number" id="guessInput" min="1" max="100" placeholder="输入数字">
+            <button onclick="checkGuess()">提交猜测</button>
+        </div>
+        <button onclick="resetGame()" style="background-color: #555; margin-top: 10px;">重新开始游戏</button>
+
+        <p id="message">请输入你的第一次猜测！</p>
+        <p id="guesses">已猜过的数字：</p>
+    </div>
+
+    <script>
+        // 游戏核心变量
+        let randomNumber = Math.floor(Math.random() * 100) + 1;
+        let remainingAttempts = 10;
+        let previousGuesses = [];
+
+        // 获取DOM元素
+        const guessInput = document.getElementById('guessInput');
+        const messageDisplay = document.getElementById('message');
+        const attemptsDisplay = document.getElementById('attempts');
+        const guessesDisplay = document.getElementById('guesses');
+
+        // 检查猜测的主函数
+        function checkGuess() {
+            const userGuess = Number(guessInput.value);
+
+            // 1. 验证输入
+            if (!userGuess || userGuess < 1 || userGuess > 100) {
+                setMessage('请输入一个有效的 1 到 100 之间的数字！', 'error');
+                return;
+            }
+            if (previousGuesses.includes(userGuess)) {
+                setMessage('这个数字你已经猜过了，试试别的！', 'error');
+                return;
+            }
+
+            // 2. 处理猜测
+            previousGuesses.push(userGuess);
+            remainingAttempts--;
+
+            // 3. 比较数字并给出提示
+            if (userGuess === randomNumber) {
+                setMessage(`🎉 恭喜！你猜对了！数字就是 ${randomNumber}！`, 'success');
+                endGame();
+            } else if (remainingAttempts === 0) {
+                setMessage(`😔 机会用完了！正确答案是 ${randomNumber}。`, 'error');
+                endGame();
+            } else if (userGuess < randomNumber) {
+                setMessage(`📉 太低了！还剩 ${remainingAttempts} 次机会。`, 'hint');
+            } else {
+                setMessage(`📈 太高了！还剩 ${remainingAttempts} 次机会。`, 'hint');
+            }
+
+            // 4. 更新显示
+            updateDisplay(userGuess);
+            guessInput.value = ''; // 清空输入框
+            guessInput.focus();    // 聚焦输入框
+        }
+
+        // 设置消息的函数
+        function setMessage(msg, type) {
+            messageDisplay.textContent = msg;
+            messageDisplay.className = type; // 应用对应样式类
+        }
+
+        // 更新显示
+        function updateDisplay(guess) {
+            attemptsDisplay.textContent = remainingAttempts;
+            guessesDisplay.innerHTML = `已猜过的数字：<strong>${previousGuesses.join(', ')}</strong>`;
+        }
+
+        // 结束游戏
+        function endGame() {
+            guessInput.disabled = true;
+            document.querySelector('button').disabled = true;
+        }
+
+        // 重置游戏
+        function resetGame() {
+            randomNumber = Math.floor(Math.random() * 100) + 1;
+            remainingAttempts = 10;
+            previousGuesses = [];
+            guessInput.disabled = false;
+            document.querySelector('button').disabled = false;
+            guessInput.value = '';
+            setMessage('新游戏开始！请输入你的第一次猜测！', 'hint');
+            attemptsDisplay.textContent = remainingAttempts;
+            guessesDisplay.textContent = '已猜过的数字：';
+        }
+
+        // 允许按回车键提交
+        guessInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                checkGuess();
+            }
+        });
+    </script>
+</body>
+</html>
